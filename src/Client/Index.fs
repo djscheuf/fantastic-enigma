@@ -3,6 +3,7 @@ module Index
 open Elmish
 open Fable.Remoting.Client
 open Shared
+open System
 
 type Model = { Todos: Todo list; Input: string }
 
@@ -11,6 +12,7 @@ type Msg =
     | SetInput of string
     | AddTodo
     | AddedTodo of Todo
+    | CompletedTodo of Guid
 
 let todosApi =
     Remoting.createApi ()
@@ -40,6 +42,21 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
         { model with
               Todos = model.Todos @ [ todo ] },
         Cmd.none
+    | CompletedTodo completedId ->
+        let completedIdx =
+            model.Todos
+            |> List.findIndex (fun e -> e.Id = completedId)
+
+        let todoToComplete = model.Todos.[completedIdx]
+
+        let completedTodo = Todo.complete todoToComplete
+
+        { model with
+              Todos =
+                  model.Todos.[0..completedIdx]
+                  @ [ completedTodo ]
+                    @ model.Todos.[completedIdx + 1..model.Todos.Length] },
+        Cmd.none
 
 open Feliz
 open Feliz.Bulma
@@ -63,7 +80,22 @@ let containerBox (model: Model) (dispatch: Msg -> unit) =
         Bulma.content [
             Html.ol [
                 for todo in model.Todos do
-                    Html.li [ prop.text todo.Description ]
+                    Html.li [
+                        Bulma.field.div [
+                            prop.children [
+                                Bulma.field.div [
+                                    prop.text todo.Completed
+                                ]
+                                Bulma.field.div [
+                                    prop.text todo.Description
+                                ]
+                                Bulma.input.checkbox [
+                                    prop.value false 
+                                    prop.onClick (fun _ -> CompletedTodo todo.Id |> dispatch)
+                                ]
+                            ]
+                        ]
+                    ]
             ]
         ]
         Bulma.field.div [

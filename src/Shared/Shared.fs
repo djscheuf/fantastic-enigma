@@ -2,7 +2,10 @@ namespace Shared
 
 open System
 
-type Todo = { Id: Guid; Description: string }
+type Todo =
+    { Id: Guid
+      Description: string
+      Completed: bool }
 
 module Todo =
     let isValid (description: string) =
@@ -10,7 +13,10 @@ module Todo =
 
     let create (description: string) =
         { Id = Guid.NewGuid()
-          Description = description }
+          Description = description
+          Completed = false }
+
+    let complete (todo: Todo) = { todo with Completed = true }
 
 module Route =
     let builder typeName methodName =
