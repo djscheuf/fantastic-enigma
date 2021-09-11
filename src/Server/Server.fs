@@ -24,7 +24,7 @@ type Storage() =
             let todoIndex = todos.FindIndex(fun e -> e.Id = givenId)
             let completedTodo = todos.Find(fun e -> e.Id = givenId) |> Todo.complete
             todos.RemoveAt todoIndex
-            todos.Add completedTodo
+            todos.Insert(todoIndex, completedTodo)
             Ok()
         else 
             Error "Todo does not Exist"
