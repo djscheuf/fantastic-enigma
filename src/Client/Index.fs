@@ -12,7 +12,8 @@ type Msg =
     | SetInput of string
     | AddTodo
     | AddedTodo of Todo
-    | CompletedTodo of Guid
+    | CompleteTodo of Guid
+    | CompletedTodo of string
 
 let todosApi =
     Remoting.createApi ()
@@ -42,21 +43,14 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
         { model with
               Todos = model.Todos @ [ todo ] },
         Cmd.none
-    | CompletedTodo completedId ->
-        let completedIdx =
-            model.Todos
-            |> List.findIndex (fun e -> e.Id = completedId)
-
-        let todoToComplete = model.Todos.[completedIdx]
-
-        let completedTodo = Todo.complete todoToComplete
-
-        { model with
-              Todos =
-                  model.Todos.[0..completedIdx]
-                  @ [ completedTodo ]
-                    @ model.Todos.[completedIdx + 1..model.Todos.Length] },
-        Cmd.none
+    | CompleteTodo givenId -> 
+        let cmd = Cmd.OfAsync.perform todosApi.completeTodo givenId CompletedTodo
+        model, cmd
+    | CompletedTodo result ->
+        Console.WriteLine(result)
+        let cmd =
+            Cmd.OfAsync.perform todosApi.getTodos () GotTodos
+        model , cmd
 
 open Feliz
 open Feliz.Bulma
@@ -75,27 +69,43 @@ let navBrand =
         ]
     ]
 
+let completeTodo (todo: Todo) (dispatch: Msg -> unit) = 
+    Html.li [
+        Bulma.field.div [
+            prop.children [
+                 Bulma.field.div [
+                    prop.text todo.Description
+                ]
+            ]
+        ]
+    ]
+
+
+let incompleteTodo (todo: Todo) (dispatch: Msg -> unit) = 
+    Html.li [
+        Bulma.field.div [
+            prop.children [
+                Bulma.field.div [
+                    prop.text todo.Description
+                ]
+                Bulma.button.a [
+                    color.isLight
+                    prop.onClick (fun _ -> CompleteTodo todo.Id |> dispatch)
+                    prop.text "Complete?"
+                ]
+            ]
+        ]
+    ]
+
 let containerBox (model: Model) (dispatch: Msg -> unit) =
     Bulma.box [
         Bulma.content [
             Html.ol [
                 for todo in model.Todos do
-                    Html.li [
-                        Bulma.field.div [
-                            prop.children [
-                                Bulma.field.div [
-                                    prop.text todo.Completed
-                                ]
-                                Bulma.field.div [
-                                    prop.text todo.Description
-                                ]
-                                Bulma.input.checkbox [
-                                    prop.value false 
-                                    prop.onClick (fun _ -> CompletedTodo todo.Id |> dispatch)
-                                ]
-                            ]
-                        ]
-                    ]
+                    if(todo.Completed) then
+                        completeTodo todo dispatch
+                    else
+                        incompleteTodo todo dispatch
             ]
         ]
         Bulma.field.div [

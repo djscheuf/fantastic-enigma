@@ -16,7 +16,11 @@ module Todo =
           Description = description
           Completed = false }
 
-    let complete (todo: Todo) = { todo with Completed = true }
+    let complete (todo: Todo) = 
+        if(todo.Completed) then
+            todo
+        else 
+            { todo with Completed = true; Description = "Completed: "+ todo.Description }
 
 module Route =
     let builder typeName methodName =
@@ -24,4 +28,5 @@ module Route =
 
 type ITodosApi =
     { getTodos: unit -> Async<Todo list>
-      addTodo: Todo -> Async<Todo> }
+      addTodo: Todo -> Async<Todo>
+      completeTodo: Guid -> Async<string> }

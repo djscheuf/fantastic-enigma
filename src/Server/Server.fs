@@ -3,6 +3,7 @@ module Server
 open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
 open Saturn
+open System
 
 open Shared
 
@@ -17,6 +18,16 @@ type Storage() =
             Ok()
         else
             Error "Invalid todo"
+    
+    member __.CompleteTodo(givenId: Guid) =
+        if todos.Exists(fun e -> e.Id = givenId) then 
+            let todoIndex = todos.FindIndex(fun e -> e.Id = givenId)
+            let completedTodo = todos.Find(fun e -> e.Id = givenId) |> Todo.complete
+            todos.RemoveAt todoIndex
+            todos.Add completedTodo
+            Ok()
+        else 
+            Error "Todo does not Exist"
 
 let storage = Storage()
 
@@ -29,6 +40,9 @@ storage.AddTodo(Todo.create "Write your app")
 storage.AddTodo(Todo.create "Ship it !!!")
 |> ignore
 
+storage.AddTodo(Todo.create "Whip it !!!")
+|> ignore
+
 let todosApi =
     { getTodos = fun () -> async { return storage.GetTodos() }
       addTodo =
@@ -37,7 +51,14 @@ let todosApi =
                   match storage.AddTodo todo with
                   | Ok () -> return todo
                   | Error e -> return failwith e
-              } }
+              }
+      completeTodo = 
+        fun givenId -> 
+          async { 
+              match storage.CompleteTodo givenId with
+              | Ok () -> return "Completed"
+              | Error e -> return failwith e } 
+          }
 
 let webApp =
     Remoting.createApi ()
