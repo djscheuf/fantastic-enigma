@@ -41,7 +41,7 @@ let todosApi =
 
 let webApp =
     Remoting.createApi ()
-    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.withRouteBuilder Shared.Route.builder
     |> Remoting.fromValue todosApi
     |> Remoting.buildHttpHandler
 
