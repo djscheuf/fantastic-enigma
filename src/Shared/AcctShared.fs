@@ -4,32 +4,28 @@ open System
 open Events
 
 module Account =
-    let CreditAcctEventKind = Events.createKind("Credit");
+    let CreditAcctEventKind = Events.createKind ("Credit")
 
-    let DebitAcctEventKind = Events.createKind("Debit");
+    let DebitAcctEventKind = Events.createKind ("Debit")
 
-    type CreditAcctEventDetails = { Amount: float; }
-    type DebitAcctEventDetails = { Amount: float; }
+    type CreditAcctEventDetails = { Amount: float }
+    type DebitAcctEventDetails = { Amount: float }
 
-    let deposit (amount: float) = 
-        let eventDetails = { Amount = amount};
-        {
-            Id = Guid.NewGuid()
-            Kind = CreditAcctEventKind
-            Details = eventDetails.ToString()
-        }
+    let deposit (amount: float) =
+        let eventDetails = { Amount = amount }
 
-    let credit(amount: float) =
-        let eventDetails = {Amount = amount};
-        {
-            Id = Guid.NewGuid()
-            Kind = DebitAcctEventKind
-            Details = eventDetails.ToString()
-        }
+        { Id = Guid.NewGuid()
+          Kind = CreditAcctEventKind
+          Details = eventDetails.ToString() }
+
+    let credit (amount: float) =
+        let eventDetails = { Amount = amount }
+
+        { Id = Guid.NewGuid()
+          Kind = DebitAcctEventKind
+          Details = eventDetails.ToString() }
 
 type IAccountApi =
-    { 
-        getBalance: unit -> Async<float>
-        deposit: float -> Async<Result<unit,string>> 
-        withdraw: float -> Async<Result<unit,string>> 
-    }
+    { getBalance: unit -> Async<float>
+      deposit: float -> Async<Result<unit, string>>
+      withdraw: float -> Async<Result<unit, string>> }
