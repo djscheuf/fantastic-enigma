@@ -2,7 +2,7 @@ module Index
 
 open Elmish
 open Fable.Remoting.Client
-open Shared
+open TodoShared
 
 type Model = { Todos: Todo list; Input: string }
 

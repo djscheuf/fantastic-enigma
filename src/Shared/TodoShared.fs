@@ -1,4 +1,4 @@
-namespace Shared
+namespace TodoShared
 
 open System
 
