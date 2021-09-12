@@ -5,20 +5,9 @@ open Fable.Remoting.Giraffe
 open Saturn
 
 open TodoShared
+open ServeTodos
 
-type Storage() =
-    let todos = ResizeArray<_>()
-
-    member __.GetTodos() = List.ofSeq todos
-
-    member __.AddTodo(todo: Todo) =
-        if Todo.isValid todo.Description then
-            todos.Add todo
-            Ok()
-        else
-            Error "Invalid todo"
-
-let storage = Storage()
+let storage = TodoStorage()
 
 storage.AddTodo(Todo.create "Create new SAFE project")
 |> ignore
