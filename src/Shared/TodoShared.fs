@@ -12,10 +12,6 @@ module Todo =
         { Id = Guid.NewGuid()
           Description = description }
 
-module Route =
-    let builder typeName methodName =
-        sprintf "/api/%s/%s" typeName methodName
-
 type ITodosApi =
     { getTodos: unit -> Async<Todo list>
       addTodo: Todo -> Async<Todo> }
