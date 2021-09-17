@@ -52,7 +52,7 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
         let cmd =
             Cmd.OfAsync.perform todosApi.getTodos () GotTodos
         model , cmd
-    | ToggleCompletedDisplay -> { model with ShowCompleted = if model.ShowCompleted then false else true}, Cmd.none
+    | ToggleCompletedDisplay -> { model with ShowCompleted = not model.ShowCompleted}, Cmd.none
 
 open Feliz
 open Feliz.Bulma
