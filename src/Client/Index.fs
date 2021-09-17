@@ -11,9 +11,9 @@ type Msg =
     | GotTodos of Todo list
     | SetInput of string
     | AddTodo
-    | AddedTodo of Todo
+    | AddedTodo of Todo list
     | CompleteTodo of Guid
-    | CompletedTodo of string
+    | CompletedTodo of Todo list
     | ToggleCompletedDisplay
 
 let todosApi =
@@ -40,18 +40,15 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
             Cmd.OfAsync.perform todosApi.addTodo todo AddedTodo
 
         { model with Input = "" }, cmd
-    | AddedTodo todo ->
+    | AddedTodo todos ->
         { model with
-              Todos = model.Todos @ [ todo ] },
+              Todos = todos  },
         Cmd.none
     | CompleteTodo givenId -> 
         let cmd = Cmd.OfAsync.perform todosApi.completeTodo givenId CompletedTodo
         model, cmd
-    | CompletedTodo result ->
-        Console.WriteLine(result)
-        let cmd =
-            Cmd.OfAsync.perform todosApi.getTodos () GotTodos
-        model , cmd
+    | CompletedTodo todos ->
+        {model with Todos = todos } , Cmd.none
     | ToggleCompletedDisplay -> { model with ShowCompleted = not model.ShowCompleted}, Cmd.none
 
 open Feliz
