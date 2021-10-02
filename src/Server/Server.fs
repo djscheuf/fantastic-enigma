@@ -4,6 +4,7 @@ open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
 open Saturn
 open System
+open System.IO
 
 open Shared
 
@@ -44,27 +45,49 @@ open Shared
 // storage.AddTodo(Todo.create "Whip it !!!")
 // |> ignore
 
-type Todos = list<Todo>
-//TODO eventually replace that empty list with fun that reads from disk.
-let getTodos: Todos = [];
-let addTodos existingTodos newTodo =
-    newTodo::existingTodos
-let completeTodo existingTodos givenId = 
-    existingTodos 
-    |> List.map (fun e -> if e.Id = givenId then Todo.complete e else e)
-
-
+let storagePath = "./Data/db.csv";
 //[ ] Next time -> Write a Func that save myTodos into a JSON Doc.
 // JCJ Usually using a directory and some files to that DIR. 
 
+let getTodos path = 
+    if File.Exists(path)
+    then 
+        File.ReadAllLines(path)
+        |> Array.toList
+        |> List.map (Todo.recreate)
+    else
+        printfn "File Does Not Exist"
+        []
+let readTodos = getTodos storagePath
+
+let storeTodos existingTodos = 
+    let dehydrated = 
+        existingTodos 
+        |> List.map (Todo.dehydrate)
+    File.WriteAllLines(storagePath, dehydrated) // TODO: There ought to be a wayto pipe ^ directly into second arg here...
+
+    readTodos
+
+type Todos = list<Todo>
+//TODO eventually replace that empty list with fun that reads from disk.
+
+let addTodos existingTodos newTodo =
+    newTodo::existingTodos 
+    |> storeTodos
+let completeTodo existingTodos givenId = 
+    existingTodos 
+    |> List.map (fun e -> if e.Id = givenId then Todo.complete e else e)
+    |> storeTodos
+
+
 let todosApi =
-    { getTodos = fun () -> async { return getTodos }
+    { getTodos = fun () -> async { return (readTodos) }
       addTodo =
           fun todo ->
-              async { return addTodos (getTodos) todo }
+              async { return addTodos (readTodos) todo }
       completeTodo = 
         fun givenId -> 
-          async { return completeTodo (getTodos) givenId } 
+          async { return completeTodo (readTodos) givenId } 
           }
 
 let webApp =

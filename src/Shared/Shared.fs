@@ -21,6 +21,19 @@ module Todo =
             todo
         else 
             { todo with Completed = true; Description = "Completed: "+ todo.Description }
+    
+    let recreate (driedTodo: string) =
+        let parts = driedTodo.Split [|','|]
+        { 
+            Id = Guid.Parse(parts.[0])
+            Description = parts.[1]
+            Completed = Boolean.Parse(parts.[2])
+        }
+
+    let dehydrate theTodo = 
+        let driedV = $"%s{theTodo.Id.ToString()}, \"%s{theTodo.Description}\", %s{theTodo.Completed.ToString()}"
+        printfn "%s" driedV
+        driedV
 
 module Route =
     let builder typeName methodName =
