@@ -31,7 +31,7 @@ module Todo =
         }
 
     let dehydrate theTodo = 
-        let driedV = $"%s{theTodo.Id.ToString()}, \"%s{theTodo.Description}\", %s{theTodo.Completed.ToString()}"
+        let driedV = $"%s{theTodo.Id.ToString()}, %s{theTodo.Description}, %s{theTodo.Completed.ToString()}"
         printfn "%s" driedV
         driedV
 
