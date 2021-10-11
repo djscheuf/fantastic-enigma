@@ -24,14 +24,16 @@ module Todo =
     
     let recreate (driedTodo: string) =
         let parts = driedTodo.Split [|','|]
+        let fullDesc = parts.[1].Replace("%2C",",")
         { 
             Id = Guid.Parse(parts.[0])
-            Description = parts.[1]
+            Description = fullDesc
             Completed = Boolean.Parse(parts.[2])
         }
 
     let dehydrate theTodo = 
-        let driedV = $"%s{theTodo.Id.ToString()}, %s{theTodo.Description}, %s{theTodo.Completed.ToString()}"
+        let safeDesc = theTodo.Description.Replace(",","%2C")
+        let driedV = $"%s{theTodo.Id.ToString()}, %s{safeDesc}, %s{theTodo.Completed.ToString()}"
         printfn "%s" driedV
         driedV
 
