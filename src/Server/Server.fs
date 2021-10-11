@@ -50,23 +50,37 @@ let storagePath = "./Data/db.csv";
 // JCJ Usually using a directory and some files to that DIR. 
 
 let getTodos path = 
-    if File.Exists(path)
-    then 
-        File.ReadAllLines(path)
-        |> Array.toList
-        |> List.map (Todo.recreate)
-    else
-        printfn "File Does Not Exist"
-        []
+    async{
+        if File.Exists(path)
+        then 
+            let! lines = File.ReadAllLinesAsync(path) |> Async.AwaitTask
+            return  lines
+            |> Array.toList
+            |> List.map (Todo.recreate)
+        else
+            printfn "File Does Not Exist"
+            return []
+    }
+
 let readTodos = getTodos storagePath
 
-let storeTodos existingTodos = 
-    let dehydrated = 
-        existingTodos 
-        |> List.map (Todo.dehydrate)
-    File.WriteAllLines(storagePath, dehydrated) // TODO: There ought to be a wayto pipe ^ directly into second arg here...
+let writeTodos contents = File.WriteAllLinesAsync(storagePath, contents)
 
-    readTodos
+let storeTodos existingTodos = 
+    async {
+        let dehydrated = 
+            existingTodos 
+            |> List.map (Todo.dehydrate)
+
+        dehydrated
+        |> printfn "%A"
+
+        writeTodos dehydrated
+        |> Async.AwaitTask
+        |> ignore
+
+        return! readTodos
+    }
 
 type Todos = list<Todo>
 //TODO eventually replace that empty list with fun that reads from disk.
@@ -74,21 +88,31 @@ type Todos = list<Todo>
 let addTodos existingTodos newTodo =
     newTodo::existingTodos 
     |> storeTodos
+
 let completeTodo existingTodos givenId = 
     existingTodos 
     |> List.map (fun e -> if e.Id = givenId then Todo.complete e else e)
     |> storeTodos
 
 
+
 let todosApi =
-    { getTodos = fun () -> async { return (readTodos) }
+    { 
+      getTodos = 
+        fun () -> async { return! readTodos } 
       addTodo =
-          fun todo ->
-              async { return addTodos (readTodos) todo }
+          fun todo -> 
+          async {
+              let! existingTodos = readTodos;
+              return! addTodos existingTodos todo 
+            }
+              
       completeTodo = 
-        fun givenId -> 
-          async { return completeTodo (readTodos) givenId } 
-          }
+        fun givenId -> async {
+            let! existingTodos = readTodos;
+            return! completeTodo existingTodos givenId 
+        }
+   }
 
 let webApp =
     Remoting.createApi ()
